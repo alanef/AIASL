@@ -1,0 +1,120 @@
+version: "1.0"
+metadata:
+  title: "E-commerce Platform"
+  description: "Modern e-commerce site with Next.js"
+  domain: "retail"
+  status: "development"
+
+architecture:
+  type: "fullstack"
+  pattern: "pages-router"
+  layers:
+    presentation:
+      type: "web"
+      framework: "nextjs"
+      components:
+        - "ProductGrid"
+        - "Cart"
+        - "Checkout"
+    application:
+      type: "serverless"
+      apis: ["ProductAPI", "OrderAPI"]
+    domain:
+      entities: ["Product", "Order", "User"]
+
+infrastructure:
+  hosting:
+    type: "cloud"
+    provider: "vercel"
+  frontend:
+    framework: "nextjs"
+    version: "14.0"
+    requirements:
+      - "typescript"
+      - "tailwindcss"
+      - "react-query"
+      - "zod"
+    buildTools:
+      - "typescript"
+      - "eslint"
+      - "prettier"
+  backend:
+    language: "typescript"
+    runtime: "node"
+  database:
+    type: "nosql"
+    engine: "mongodb"
+    orm: "prisma"
+
+components:
+  - type: "page"
+    name: "ProductPage"
+    props:
+      - name: "product"
+        type: "Product"
+    methods:
+      - name: "getStaticProps"
+      - name: "getStaticPaths"
+
+  - type: "component"
+    name: "Cart"
+    state:
+      - name: "items"
+        type: "CartItem[]"
+      - name: "total"
+        type: "number"
+
+dataModel:
+  entities:
+    - name: "Product"
+      fields:
+        - name: "id"
+          type: "string"
+          required: true
+        - name: "name"
+          type: "string"
+        - name: "price"
+          type: "number"
+        - name: "stock"
+          type: "number"
+    - name: "Order"
+      fields:
+        - name: "items"
+          type: "array"
+        - name: "status"
+          type: "enum"
+          values: ["pending", "paid", "shipped"]
+
+security:
+  authentication:
+    type: "jwt"
+    provider: "next-auth"
+  authorization:
+    roles: ["user", "admin"]
+
+deployment:
+  environments:
+    - name: "development"
+      url: "${VERCEL_DEV_URL}"
+    - name: "production"
+      url: "${VERCEL_PROD_URL}"
+  pipeline:
+    stages:
+      - "lint"
+      - "test"
+      - "build"
+      - "deploy"
+
+testing:
+  unit:
+    framework: "jest"
+  e2e:
+    framework: "cypress"
+
+performance:
+  optimization:
+    images: true
+    fonts: true
+    bundling: true
+  monitoring:
+    analytics: "vercel-analytics"

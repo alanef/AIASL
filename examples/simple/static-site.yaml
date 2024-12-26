@@ -1,0 +1,89 @@
+version: "1.0"
+metadata:
+  title: "Tech Blog"
+  description: "Developer blog built with Hugo"
+  status: "active"
+
+architecture:
+  type: "static-generated"
+  pattern: "content-first"
+  layers:
+    presentation:
+      type: "static"
+      framework: "hugo"
+      components:
+        - "PostList"
+        - "PostDetail"
+        - "CategoryNav"
+
+infrastructure:
+  hosting:
+    type: "cdn"
+    provider: "netlify"
+  frontend:
+    framework: "hugo"
+    version: "0.92"
+    buildTools:
+      - "nodejs"
+      - "npm"
+    requirements:
+      - "postcss"
+      - "autoprefixer"
+
+components:
+  - type: "layout"
+    name: "BaseLayout"
+    children: ["Header", "Footer"]
+
+  - type: "page"
+    name: "PostList"
+    props:
+      - name: "posts"
+        type: "array"
+
+  - type: "page"
+    name: "PostDetail"
+    props:
+      - name: "post"
+        type: "object"
+
+dataModel:
+  entities:
+    - name: "Post"
+      fields:
+        - name: "title"
+          type: "string"
+        - name: "date"
+          type: "datetime"
+        - name: "content"
+          type: "markdown"
+        - name: "categories"
+          type: "array"
+
+deployment:
+  pipeline:
+    stages:
+      - name: "build"
+        commands:
+          - "hugo"
+      - name: "optimize"
+        commands:
+          - "postcss"
+      - name: "deploy"
+        commands:
+          - "netlify deploy"
+  environments:
+    - name: "production"
+      branch: "main"
+      url: "${NETLIFY_URL}"
+
+documentation:
+  technical:
+    setup:
+      - "Install Hugo"
+      - "Install Node.js and NPM"
+    development:
+      - "hugo server"
+    build:
+      - "hugo"
+      - "postcss ./public/css/*.css"

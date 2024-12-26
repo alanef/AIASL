@@ -1,0 +1,66 @@
+  version: "1.0"
+  metadata:
+    title: "Coffee Shop Landing Page"
+    description: "Simple static landing page for local coffee shop"
+    status: "draft"
+
+  architecture:
+    type: "monolithic"
+    pattern: "frontend"
+    layers:
+      presentation:
+        type: "static"
+        components:
+          - "header"
+          - "menuSection"
+          - "contactForm"
+
+  infrastructure:
+    hosting:
+      type: "static"
+      provider: "github-pages"
+    frontend:
+      requirements: ["html5", "css3", "vanilla-js"]
+
+  components:
+    - type: "layout"
+      name: "header"
+      state:
+        - name: "isMenuVisible"
+          type: "boolean"
+          initial: false
+      methods:
+        - name: "toggleMobileMenu"
+
+    - type: "component"
+      name: "menuSection"
+      state:
+        - name: "activeCategory"
+          type: "string"
+          initial: "hot-drinks"
+
+    - type: "component"
+      name: "contactForm"
+      methods:
+        - name: "validateForm"
+        - name: "submitForm"
+
+  dataModel:
+    entities:
+      - name: "MenuItem"
+        fields:
+          - name: "name"
+            type: "string"
+          - name: "price"
+            type: "number"
+          - name: "category"
+            type: "string"
+
+  documentation:
+    technical:
+      structure:
+        files:
+          - "index.html"
+          - "styles.css"
+          - "script.js"
+      deployment: "Upload files to web host"

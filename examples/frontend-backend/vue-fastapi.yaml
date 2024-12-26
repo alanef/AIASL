@@ -1,0 +1,52 @@
+# Backend API Specification
+version: "1.0"
+metadata:
+  title: "Blog API"
+
+architecture:
+  type: "backend"
+  pattern: "rest"
+
+infrastructure:
+  backend:
+    language: "python"
+    framework: "fastapi"
+  database:
+    type: "nosql"
+    engine: "mongodb"
+
+dataModel:
+  entities:
+    - name: "Post"
+      fields:
+        - name: "title"
+          type: "string"
+        - name: "content"
+          type: "text"
+        - name: "author"
+          type: "reference"
+
+# Frontend Specification
+version: "1.0"
+metadata:
+  title: "Blog Frontend"
+
+architecture:
+  type: "frontend"
+  pattern: "spa"
+
+infrastructure:
+  frontend:
+    framework: "vue"
+    version: "3"
+    requirements: ["pinia", "vue-router"]
+
+components:
+  - type: "page"
+    name: "BlogPost"
+    props:
+      - name: "postId"
+        type: "string"
+    state:
+      - name: "post"
+        type: "object"

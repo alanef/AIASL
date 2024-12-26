@@ -1,0 +1,52 @@
+# Backend API Specification
+version: "1.0"
+metadata:
+  title: "Task Manager API"
+
+architecture:
+  type: "backend"
+  pattern: "rest"
+
+infrastructure:
+  backend:
+    language: "nodejs"
+    framework: "express"
+  database:
+    type: "sql"
+    engine: "postgresql"
+
+dataModel:
+  entities:
+    - name: "Task"
+      fields:
+        - name: "title"
+          type: "string"
+        - name: "completed"
+          type: "boolean"
+        - name: "dueDate"
+          type: "date"
+
+# Frontend Specification
+version: "1.0"
+metadata:
+  title: "Task Manager Frontend"
+
+architecture:
+  type: "frontend"
+  pattern: "spa"
+
+infrastructure:
+  frontend:
+    framework: "react"
+    buildTools: ["vite"]
+    requirements: ["axios", "react-query"]
+
+components:
+  - type: "page"
+    name: "TaskList"
+    state:
+      - name: "tasks"
+        type: "array"
+    methods:
+      - name: "fetchTasks"
+      - name: "createTask"

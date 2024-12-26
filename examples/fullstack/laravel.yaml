@@ -1,0 +1,129 @@
+version: "1.0"
+metadata:
+  title: "Course Management System"
+  domain: "education"
+
+architecture:
+  type: "monolithic"
+  pattern: "mvc"
+  layers:
+    presentation:
+      type: "blade"
+      components:
+        - "CourseList"
+        - "LessonView"
+        - "Dashboard"
+    application:
+      controllers: ["CourseController", "LessonController"]
+      middleware: ["AuthMiddleware", "RoleMiddleware"]
+
+infrastructure:
+  framework: "laravel"
+  version: "10.x"
+  frontend:
+    template: "blade"
+    assets:
+      - "vite"
+      - "tailwindcss"
+      - "alpinejs"
+  database:
+    type: "sql"
+    engine: "mysql"
+    migrations: true
+
+components:
+  - type: "view"
+    name: "CourseList"
+    layout: "app"
+    data:
+      - name: "courses"
+        source: "CourseController@index"
+    partials:
+      - "course-card"
+      - "pagination"
+
+  - type: "component"
+    name: "CourseCard"
+    props:
+      - name: "course"
+        type: "Course"
+    slots:
+      - "header"
+      - "footer"
+
+dataModel:
+  entities:
+    - name: "Course"
+      fields:
+        - name: "title"
+          type: "string"
+        - name: "description"
+          type: "text"
+        - name: "published"
+          type: "boolean"
+      relations:
+        - type: "hasMany"
+          with: "Lesson"
+        - type: "belongsTo"
+          with: "User"
+          as: "instructor"
+
+    - name: "Lesson"
+      fields:
+        - name: "title"
+          type: "string"
+        - name: "content"
+          type: "longtext"
+        - name: "order"
+          type: "integer"
+
+security:
+  authentication:
+    type: "session"
+    provider: "eloquent"
+  authorization:
+    gates:
+      - "viewCourse"
+      - "createLesson"
+    policies:
+      - "CoursePolicy"
+      - "LessonPolicy"
+
+routing:
+  web:
+    - "courses.index"
+    - "courses.show"
+    - "lessons.view"
+  api:
+    - "api/courses"
+    - "api/lessons"
+
+services:
+  - name: "CourseService"
+    methods:
+      - "createCourse"
+      - "publishCourse"
+  - name: "EnrollmentService"
+    methods:
+      - "enrollStudent"
+      - "trackProgress"
+
+deployment:
+  commands:
+    - "composer install"
+    - "npm install"
+    - "npm run build"
+    - "php artisan migrate"
+  optimize:
+    - "php artisan config:cache"
+    - "php artisan route:cache"
+    - "php artisan view:cache"
+
+testing:
+  feature:
+    - "CourseTest"
+    - "EnrollmentTest"
+  unit:
+    - "CourseServiceTest"
+  browser:
+    framework: "dusk"

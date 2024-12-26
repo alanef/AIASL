@@ -1,0 +1,161 @@
+version: "1.0"
+metadata:
+  title: "Real Estate Platform"
+  domain: "real-estate"
+
+architecture:
+  type: "wordpress"
+  pattern: "custom-theme-plugins"
+  components:
+    theme:
+      name: "realtor-theme"
+      type: "custom"
+    plugins:
+      - "property-manager"
+      - "agent-profiles"
+      - "viewing-scheduler"
+
+infrastructure:
+  core:
+    version: "6.4"
+    requirements:
+      - "php: ^8.1"
+      - "mysql: ^8.0"
+  development:
+    tools:
+      - "composer"
+      - "webpack"
+      - "docker"
+
+plugins:
+  - name: "property-manager"
+    type: "custom"
+    features:
+      - name: "custom-post-type"
+        slug: "property"
+        fields:
+          - "price"
+          - "bedrooms"
+          - "location"
+      - name: "taxonomies"
+        items:
+          - "property-type"
+          - "location-area"
+      - name: "rest-api"
+        endpoints:
+          - "properties"
+          - "search"
+    hooks:
+      actions:
+        - "save_property"
+        - "property_viewed"
+      filters:
+        - "property_price_display"
+        - "property_query_args"
+
+  - name: "agent-profiles"
+    type: "custom"
+    features:
+      - name: "user-roles"
+        roles:
+          - "agent"
+          - "agency-admin"
+      - name: "meta-fields"
+        items:
+          - "license_number"
+          - "specialties"
+          - "service_areas"
+    capabilities:
+      - "manage_properties"
+      - "view_analytics"
+
+  - name: "viewing-scheduler"
+    type: "custom"
+    features:
+      - name: "booking-system"
+        components:
+          - "calendar"
+          - "time-slots"
+          - "confirmation"
+    database:
+      tables:
+        - "wp_viewings"
+        - "wp_availability"
+
+theme:
+  name: "realtor-theme"
+  features:
+    templates:
+      - "property-archive"
+      - "property-single"
+      - "agent-profile"
+    blocks:
+      - "property-search"
+      - "featured-listings"
+      - "agent-card"
+  assets:
+    styles:
+      - "tailwind"
+      - "custom-properties"
+    scripts:
+      - "property-filter"
+      - "viewing-booking"
+
+dataModel:
+  customPosts:
+    - name: "Property"
+      fields:
+        - name: "price"
+          type: "number"
+        - name: "status"
+          type: "term"
+          taxonomy: "property-status"
+    - name: "Viewing"
+      fields:
+        - name: "property_id"
+          type: "post"
+        - name: "datetime"
+          type: "datetime"
+
+security:
+  authentication:
+    type: "wp-login"
+    extensions:
+      - "jwt-auth"
+  authorization:
+    capabilities:
+      - "edit_properties"
+      - "manage_viewings"
+
+apis:
+  rest:
+    namespace: "re-platform/v1"
+    endpoints:
+      - "properties"
+      - "agents"
+      - "viewings"
+  graphql:
+    enabled: true
+    schemas:
+      - "Property"
+      - "Agent"
+
+deployment:
+  environments:
+    - name: "staging"
+      config:
+        WP_DEBUG: true
+    - name: "production"
+      config:
+        WP_CACHE: true
+  optimization:
+    - "wp-super-cache"
+    - "image-optimization"
+
+caching:
+  object:
+    enabled: true
+    driver: "redis"
+  page:
+    enabled: true
+    plugin: "wp-super-cache"

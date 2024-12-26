@@ -1,0 +1,52 @@
+# Backend API Specification
+version: "1.0"
+metadata:
+  title: "E-commerce API"
+
+architecture:
+  type: "backend"
+  pattern: "rest"
+
+infrastructure:
+  backend:
+    language: "java"
+    framework: "spring-boot"
+  database:
+    type: "sql"
+    engine: "mysql"
+
+dataModel:
+  entities:
+    - name: "Product"
+      fields:
+        - name: "name"
+          type: "string"
+        - name: "price"
+          type: "decimal"
+        - name: "stock"
+          type: "integer"
+
+# Frontend Specification
+version: "1.0"
+metadata:
+  title: "E-commerce Frontend"
+
+architecture:
+  type: "frontend"
+  pattern: "spa"
+
+infrastructure:
+  frontend:
+    framework: "angular"
+    version: "17"
+    requirements: ["ngrx", "rxjs"]
+
+components:
+  - type: "component"
+    name: "ProductList"
+    state:
+      - name: "products"
+        type: "array"
+    methods:
+      - name: "loadProducts"
+      - name: "addToCart"

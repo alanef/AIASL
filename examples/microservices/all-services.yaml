@@ -1,0 +1,162 @@
+version: "1.0"
+metadata:
+  title: "Authentication Service"
+
+architecture:
+  type: "microservice"
+  pattern: "stateless"
+
+infrastructure:
+  language: "nodejs"
+  framework: "express"
+  database:
+    type: "redis"
+    purpose: "token-storage"
+
+api:
+  type: "rest"
+  endpoints:
+    - path: "/auth/login"
+      method: "POST"
+    - path: "/auth/refresh"
+      method: "POST"
+    - path: "/auth/validate"
+      method: "GET"
+
+security:
+  jwt:
+    expiry: "1h"
+    refresh: "7d"
+  rateLimit:
+    window: "15m"
+    max: 100
+
+# user-service.yaml
+---
+version: "1.0"
+metadata:
+  title: "User Service"
+
+architecture:
+  type: "microservice"
+  pattern: "crud"
+
+infrastructure:
+  language: "python"
+  framework: "fastapi"
+  database:
+    type: "postgresql"
+    orm: "sqlalchemy"
+
+dataModel:
+  entities:
+    - name: "User"
+      fields:
+        - name: "email"
+          type: "string"
+          unique: true
+        - name: "profile"
+          type: "jsonb"
+        - name: "preferences"
+          type: "jsonb"
+
+api:
+  type: "rest"
+  endpoints:
+    - path: "/users"
+      methods: ["GET", "POST"]
+    - path: "/users/{id}"
+      methods: ["GET", "PUT", "DELETE"]
+
+# product-service.yaml
+version: "1.0"
+metadata:
+  title: "Product Service"
+
+architecture:
+  type: "microservice"
+  pattern: "crud"
+
+infrastructure:
+  language: "java"
+  framework: "spring-boot"
+  database:
+    type: "mongodb"
+
+dataModel:
+  entities:
+    - name: "Product"
+      fields:
+        - name: "name"
+          type: "string"
+        - name: "price"
+          type: "decimal"
+        - name: "stock"
+          type: "integer"
+        - name: "categories"
+          type: "array"
+
+api:
+  type: "rest"
+  endpoints:
+    - path: "/products"
+      methods: ["GET", "POST"]
+    - path: "/products/search"
+      method: "GET"
+    - path: "/products/{id}/stock"
+      method: "PATCH"
+
+caching:
+  type: "redis"
+  ttl: "1h"
+
+# order-service.yaml
+version: "1.0"
+metadata:
+  title: "Order Service"
+
+architecture:
+  type: "microservice"
+  pattern: "event-driven"
+
+infrastructure:
+  language: "golang"
+  framework: "gin"
+  database:
+    type: "postgresql"
+  messaging:
+    type: "kafka"
+    topics:
+      - "order-created"
+      - "order-updated"
+      - "payment-processed"
+
+dataModel:
+  entities:
+    - name: "Order"
+      fields:
+        - name: "userId"
+          type: "string"
+        - name: "items"
+          type: "array"
+        - name: "status"
+          type: "enum"
+          values: ["pending", "paid", "shipped"]
+        - name: "total"
+          type: "decimal"
+
+api:
+  type: "rest"
+  endpoints:
+    - path: "/orders"
+      methods: ["GET", "POST"]
+    - path: "/orders/{id}"
+      methods: ["GET", "PATCH"]
+    - path: "/orders/{id}/status"
+      method: "PATCH"
+
+eventHandlers:
+  - event: "payment-processed"
+    action: "updateOrderStatus"
+  - event: "stock-reserved"
+    action: "confirmOrder"
