@@ -111,6 +111,162 @@ components:
         returns: any
     children: array[component]
 ```
+# Additional Core Elements for AIASL v1.0
+
+### Actions
+```yaml
+actions:
+  - name: string (required)
+    type: enum[data|communication|file|system|integration] (required)
+    description: string
+    component: string (required) # Reference to component name
+    trigger:
+      type: enum[event|method|automatic|scheduled] (required)
+      source: string # Event name or method name if applicable
+      schedule: string # Cron expression if scheduled
+    input:
+      schema: object
+      validation:
+        rules: array[string]
+        custom: object
+      transform: object # Input transformation rules
+    output:
+      type: string (required)
+      format: string
+      schema: object
+      transform: object # Output transformation rules
+    permissions:
+      roles: array[string]
+      conditions: object
+    steps:
+      - name: string
+        type: enum[process|validate|transform|integrate|notify]
+        service: string # Reference to integration service
+        config: object
+        error:
+          retry:
+            max_attempts: number
+            backoff: enum[fixed|exponential]
+          fallback: string # Reference to fallback action
+    state:
+      success:
+        update: object # State updates on success
+        notify: array[string] # Components to notify
+      failure:
+        update: object
+        notify: array[string]
+    metadata:
+      timeout: number
+      rate_limit: object
+      audit: boolean
+```
+
+### Workflows
+```yaml
+workflows:
+  - name: string (required)
+    description: string
+    trigger:
+      type: enum[event|schedule|manual|condition] (required)
+      source: string # Component or system event
+      schedule: string # Cron expression if scheduled
+      condition: object # Condition expression
+    context:
+      data: object # Workflow context schema
+      persistence: boolean
+    steps:
+      - name: string (required)
+        type: enum[action|decision|parallel|wait]
+        action: string # Reference to action
+        condition: object # For decision steps
+        timeout: number
+        next:
+          success: string|array[string] # Next step(s)
+          failure: string # Fallback step
+          condition: object # Branching conditions
+    error_handling:
+      retry:
+        enabled: boolean
+        max_attempts: number
+        backoff: object
+      compensation:
+        enabled: boolean
+        steps: array[string]
+    state:
+      tracking: boolean
+      history: boolean
+      cleanup: enum[immediate|scheduled|manual]
+    permissions:
+      roles: array[string]
+      override: object
+```
+
+### Component Behaviors
+```yaml
+behaviors:
+  - component: string (required) # Reference to component
+    type: enum[interaction|data|lifecycle|style] (required)
+    triggers:
+      user:
+        - event: string
+          action: string
+          debounce: number
+      system:
+        - event: string
+          action: string
+          throttle: number
+    state:
+      read:
+        scope: enum[local|global|shared]
+        path: string
+      write:
+        scope: enum[local|global|shared]
+        path: string
+        validation: object
+    effects:
+      pre: array[string] # Actions before state change
+      post: array[string] # Actions after state change
+    permissions:
+      read: array[string]
+      write: array[string]
+```
+
+### State Management
+```yaml
+state:
+  global:
+    - name: string (required)
+      type: string (required)
+      initial: any
+      scope: enum[application|session|user]
+      persistence: boolean
+      subscribers: array[string] # Component references
+  shared:
+    - name: string (required)
+      type: string (required)
+      scope: array[string] # Component groups
+      sync: boolean
+      conflict_resolution: enum[last_write|merge|custom]
+```
+
+
+
+## Validation Rules
+1. Action names must be unique within the application
+2. Action components must reference existing components
+3. Workflow steps must reference valid actions
+4. Behavior components must reference existing components
+5. State paths must be valid and accessible
+6. Permissions must reference defined roles
+7. Services referenced in steps must exist in integration section
+
+## Implementation Notes
+1. Actions should be atomic and idempotent where possible
+2. Workflows should handle partial completion
+3. State updates should be transactional
+4. Error handling should be comprehensive
+5. Permissions should be checked at multiple levels
+
 
 ### Data Model
 ```yaml
